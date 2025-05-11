@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import localStorageService from './localStorageService';
 
 interface LoginResponse {
   token: string;
@@ -55,11 +56,11 @@ const authService = {
         roles: response.data.roles || ['User']
       };
 
-      // Store in localStorage
-      window.localStorage.setItem('incentive_token', token);
-      window.localStorage.setItem('incentive_refreshToken', refreshToken);
-      window.localStorage.setItem('incentive_user', JSON.stringify(user));
-      window.localStorage.setItem('incentive_lastLogin', new Date().toISOString());
+      // Store in localStorage using our service
+      localStorageService.setAuthToken(token);
+      localStorageService.setRefreshToken(refreshToken);
+      localStorageService.setUserData(user);
+      localStorageService.setLastLogin();
 
       // Return success response
       return {
@@ -87,8 +88,8 @@ const authService = {
 
   refreshToken: async (): Promise<AuthResponse> => {
     try {
-      const refreshToken = window.localStorage.getItem('incentive_refreshToken');
-      const token = window.localStorage.getItem('incentive_token');
+      const refreshToken = localStorageService.getRefreshToken();
+      const token = localStorageService.getAuthToken();
 
       if (!refreshToken || !token) {
         throw new Error('No refresh token available');
@@ -103,14 +104,13 @@ const authService = {
         const newToken = response.data.token;
         const newRefreshToken = response.data.refreshToken;
 
-        // Update tokens in localStorage
-        window.localStorage.setItem('incentive_token', newToken);
-        window.localStorage.setItem('incentive_refreshToken', newRefreshToken);
-        window.localStorage.setItem('incentive_lastLogin', new Date().toISOString());
+        // Update tokens in localStorage using our service
+        localStorageService.setAuthToken(newToken);
+        localStorageService.setRefreshToken(newRefreshToken);
+        localStorageService.setLastLogin();
 
         // Get current user from localStorage
-        const userStr = window.localStorage.getItem('incentive_user');
-        const user = userStr ? JSON.parse(userStr) : { userId: '123', email: 'user@example.com', roles: ['User'] };
+        const user = localStorageService.getUserData() || { userId: '123', email: 'user@example.com', roles: ['User'] };
 
         return {
           success: true,
@@ -134,11 +134,8 @@ const authService = {
 
   logout: async (): Promise<AuthResponse> => {
     try {
-      // Clear local storage
-      window.localStorage.removeItem('incentive_token');
-      window.localStorage.removeItem('incentive_refreshToken');
-      window.localStorage.removeItem('incentive_user');
-      window.localStorage.removeItem('incentive_lastLogin');
+      // Clear local storage using our service
+      localStorageService.clearAuthData();
 
       // Return success response
       return { success: true };
@@ -153,15 +150,14 @@ const authService = {
 
   getCurrentUser: async (): Promise<AuthResponse> => {
     try {
-      // Get user from localStorage
-      const storedUser = window.localStorage.getItem('incentive_user');
+      // Get user from localStorage using our service
+      const userData = localStorageService.getUserData();
 
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
+      if (userData) {
         return {
           success: true,
           data: {
-            token: window.localStorage.getItem('incentive_token') || '',
+            token: localStorageService.getAuthToken() || '',
             user: userData
           }
         };

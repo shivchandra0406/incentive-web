@@ -2,7 +2,9 @@ import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { authService } from '../services';
+import localStorageService from '../services/localStorageService';
 import { jwtDecode } from 'jwt-decode';
+import { showSuccessToast, showErrorToast, showInfoToast } from '../utils/toastUtils';
 
 interface User {
   userId: string;
@@ -102,11 +104,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
   }, [token]);
 
-  // Simplified login function
+  // Login function
   const login = async (username: string, password: string) => {
     console.log('AuthContext login function called with username:', username);
     try {
-      // Call the real login service
+      // Call the login service
       console.log('Calling authService.login');
       const response = await authService.login(username, password);
       console.log('authService.login response:', response);
@@ -117,30 +119,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setToken(response.data.token);
         setUser(response.data.user);
 
+        // Show success toast
+        showSuccessToast('Login successful! Welcome back.');
+
         // Navigate to dashboard
         console.log('Navigating to dashboard');
         navigate('/dashboard');
         return true;
       }
+
+      // Show error toast
+      showErrorToast('Login failed. Please check your credentials.');
       console.log('Login failed, response:', response);
       return false;
     } catch (error) {
       console.error('Error during login in AuthContext:', error);
+      showErrorToast('An error occurred during login. Please try again.');
       throw error; // Re-throw the error so it can be caught in the Login component
     }
   };
 
-  // Simplified logout function
+  // Logout function
   const logout = () => {
-    // Clear localStorage
-    window.localStorage.removeItem('incentive_token');
-    window.localStorage.removeItem('incentive_refreshToken');
-    window.localStorage.removeItem('incentive_user');
-    window.localStorage.removeItem('incentive_lastLogin');
+    // Clear localStorage using our service
+    localStorageService.clearAuthData();
 
     // Update state
     setToken(null);
     setUser(null);
+
+    // Show success toast
+    showSuccessToast('You have been successfully logged out.');
 
     // Navigate to login
     navigate('/login');
@@ -148,44 +157,42 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Function to clear auth data (used internally to avoid circular dependencies)
   const clearAuthData = () => {
-    window.localStorage.removeItem('incentive_token');
-    window.localStorage.removeItem('incentive_user');
-    window.localStorage.removeItem('incentive_lastLogin');
+    localStorageService.clearAuthData();
     setToken(null);
     setUser(null);
   };
 
   // Check if user is already logged in and token is valid
   useEffect(() => {
-    const storedToken = window.localStorage.getItem('incentive_token');
-    const storedUser = window.localStorage.getItem('incentive_user');
+    const storedToken = localStorageService.getAuthToken();
+    const userData = localStorageService.getUserData();
 
-    if (storedToken && storedUser) {
+    if (storedToken && userData) {
       try {
         // Check if token is expired
         if (isTokenExpired(storedToken)) {
           // Try to refresh the token
           refreshToken().then(success => {
             if (!success && location.pathname !== '/login') {
+              showInfoToast('Your session has expired. Please log in again.');
               navigate('/login');
             }
           });
         } else {
-          // Parse the user data
-          const userData = JSON.parse(storedUser);
-
           // Set the token and user in state
           setToken(storedToken);
           setUser(userData);
 
           // If we're on the login page, redirect to dashboard
           if (location.pathname === '/login') {
+            showInfoToast('Welcome back!');
             navigate('/dashboard');
           }
         }
       } catch (error) {
-        console.error('Error parsing stored user data:', error);
+        console.error('Error with stored user data:', error);
         clearAuthData();
+        showErrorToast('There was a problem with your session. Please log in again.');
 
         // If not on login page, redirect to login
         if (location.pathname !== '/login') {

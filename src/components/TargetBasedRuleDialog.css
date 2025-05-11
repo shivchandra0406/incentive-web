@@ -9,6 +9,8 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 20px; /* Add padding around the dialog */
+  overflow-y: auto; /* Allow scrolling in the overlay */
 }
 
 .dialog-content {
@@ -17,15 +19,28 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   width: 100%;
   max-width: 550px;
+  height: auto;
   max-height: 90vh;
-  overflow-y: auto;
-  padding-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px; /* Add space at the bottom of the form */
+  overflow: hidden; /* Hide overflow to prevent double scrollbars */
+  position: relative; /* For proper positioning of children */
 }
 
 .dialog-header {
   padding: 16px 20px;
   border-bottom: 1px solid #e0e0e0;
   text-align: center;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  z-index: 10;
+  width: 100%;
 }
 
 .dialog-header h2 {
@@ -35,14 +50,45 @@
   font-weight: 500;
 }
 
+.close-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.close-button:hover {
+  color: #3f51b5;
+  background-color: rgba(63, 81, 181, 0.1);
+}
+
 .dialog-body {
-  padding: 20px 30px;
+  padding: 20px 30px 20px; /* Reduced bottom padding */
+  overflow-y: auto;
+  flex: 1;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  max-height: calc(80vh - 70px); /* Reduced max height */
+  position: relative;
+  top: 0;
 }
 
 .form-section {
-  margin-bottom: 24px;
+  margin-bottom: 40px; /* Increased bottom margin */
   display: flex;
   flex-direction: column;
+  padding-bottom: 20px; /* Additional padding at the bottom */
 }
 
 .form-group {
@@ -151,9 +197,19 @@ select {
 }
 
 .dialog-footer {
-  padding: 16px 30px 30px;
+  padding: 16px 30px 20px;
   display: flex;
   justify-content: center;
+  background-color: white;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  margin-top: 10px;
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  border-top: 1px solid #e0e0e0;
 }
 
 .submit-button {

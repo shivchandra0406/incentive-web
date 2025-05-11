@@ -1,9 +1,10 @@
 import axios from 'axios';
 import type { AxiosRequestConfig, AxiosError } from 'axios';
+import localStorageService from './localStorageService';
 
 // Create axios instance
 const apiClient = axios.create({
-  baseURL: 'http://localhost:44307/api', // Real API endpoint (using HTTP to avoid SSL issues)
+  baseURL: 'https://localhost:44307/api', // Real API endpoint using HTTPS
   headers: {
     'Content-Type': 'application/json',
     'X-Tenant-ID': 'shiv', // Adding the tenant ID header
@@ -14,7 +15,7 @@ const apiClient = axios.create({
 // Request interceptor for adding token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = window.localStorage.getItem('incentive_token');
+    const token = localStorageService.getAuthToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -38,16 +39,16 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Try to refresh the token
-        const refreshToken = window.localStorage.getItem('incentive_refreshToken');
-        const token = window.localStorage.getItem('incentive_token');
+        // Try to refresh the token using our service
+        const refreshToken = localStorageService.getRefreshToken();
+        const token = localStorageService.getAuthToken();
 
         if (!refreshToken || !token) {
           throw new Error('No refresh token available');
         }
 
         const response = await axios.post(
-          'http://localhost:44307/api/Auth/refresh-token',
+          'https://localhost:44307/api/Auth/refresh-token',
           {
             token: token,
             refreshToken: refreshToken
@@ -64,10 +65,10 @@ apiClient.interceptors.response.use(
           const newToken = response.data.token || response.data.accessToken;
           const newRefreshToken = response.data.refreshToken;
 
-          // Update tokens in localStorage
-          window.localStorage.setItem('incentive_token', newToken);
-          window.localStorage.setItem('incentive_refreshToken', newRefreshToken);
-          window.localStorage.setItem('incentive_lastLogin', new Date().toISOString());
+          // Update tokens in localStorage using our service
+          localStorageService.setAuthToken(newToken);
+          localStorageService.setRefreshToken(newRefreshToken);
+          localStorageService.setLastLogin();
 
           // Update Authorization header
           if (originalRequest.headers) {
@@ -79,10 +80,7 @@ apiClient.interceptors.response.use(
         }
       } catch (refreshError) {
         // If refresh fails, redirect to login
-        window.localStorage.removeItem('incentive_token');
-        window.localStorage.removeItem('incentive_refreshToken');
-        window.localStorage.removeItem('incentive_user');
-        window.localStorage.removeItem('incentive_lastLogin');
+        localStorageService.clearAuthData();
         window.location.href = '/login';
         return Promise.reject(refreshError);
       }

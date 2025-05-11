@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import './App.css';
 import IncentiveRulesList from './pages/incentiveRules/IncentiveRulesList';
 import { authService } from './services';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { showSuccessToast, showErrorToast } from './utils/toastUtils';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -21,13 +24,14 @@ function App() {
 
         // If login is successful
         if (response.success) {
+          showSuccessToast('Login successful! Welcome to Mr. Munim.');
           setIsLoggedIn(true);
         } else {
-          alert(response.error || 'Login failed. Please check your credentials.');
+          showErrorToast(response.error || 'Login failed. Please check your credentials.');
         }
       } catch (error) {
         console.error('Login error:', error);
-        alert('Login failed. Please check your credentials.');
+        showErrorToast('Login failed. Please check your credentials.');
       }
     }
   };
@@ -36,6 +40,7 @@ function App() {
     setIsLoggedIn(false);
     setEmail('');
     setPassword('');
+    showSuccessToast('You have been successfully logged out.');
   };
 
   // Sample data for the deals table
@@ -56,6 +61,9 @@ function App() {
   if (!isLoggedIn) {
     return (
       <div className="login-container">
+        {/* Toast container for notifications */}
+        <ToastContainer />
+
         <div className="login-form">
           <h1>Mr. Munim</h1>
           <h3>Login to your account</h3>
@@ -88,6 +96,9 @@ function App() {
   // Dashboard and other modules
   return (
     <div className="app-container">
+      {/* Toast container for notifications */}
+      <ToastContainer />
+
       {/* Sidebar */}
       <div className="sidebar">
         <div className="sidebar-header">
