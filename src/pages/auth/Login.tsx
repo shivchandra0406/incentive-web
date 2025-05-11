@@ -8,60 +8,63 @@ import {
   Button,
   Paper,
   Link,
-  Alert,
   CircularProgress
 } from '@mui/material';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
-import { authService } from '../../services/api';
+import { ToastContainer } from 'react-toastify';
+import { showSuccessToast, showErrorToast } from '../../utils/toastUtils';
 
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const formik = useFormik({
     initialValues: {
-      email: '',
+      username: '',
       password: '',
     },
     validationSchema: Yup.object({
-      email: Yup.string()
-        .email('Invalid email address')
-        .required('Email is required'),
+      username: Yup.string()
+        .required('Username is required'),
       password: Yup.string()
         .required('Password is required'),
     }),
     onSubmit: async (values) => {
+      console.log('Form submitted with values:', values);
       setLoading(true);
-      setError(null);
 
       try {
-        // For demo purposes, we'll just simulate a successful login
-        // In a real app, this would call an API
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log('Calling login function with username:', values.username);
+        // Call the login function from AuthContext which uses the real API
+        const success = await login(values.username, values.password);
+        console.log('Login function returned:', success);
 
-        // Store user info in localStorage (simulating what authService would do)
-        const mockToken = "mock-jwt-token";
-        const mockUser = {
-          userId: "1",
-          email: values.email,
-          roles: ["User"]
-        };
-
-        localStorage.setItem('incentive_token', mockToken);
-        localStorage.setItem('incentive_user', JSON.stringify(mockUser));
-
-        // Call the login function from AuthContext
-        login(values.email, values.password);
-
-        // Navigate is handled by the login function in AuthContext
+        if (success) {
+          // Show success toast message
+          showSuccessToast('Login successful! Redirecting to dashboard...');
+          // Navigation is handled by the login function in AuthContext
+        } else {
+          // Show error toast message
+          showErrorToast('Login failed. Please check your credentials.');
+        }
       } catch (err: any) {
-        setError(err.message || 'An error occurred during login');
-        console.error('Login error:', err);
+        console.error('Login error caught in form submit:', err);
+
+        // Handle specific API error messages
+        if (err.response && err.response.data) {
+          // If the API returns a specific error message
+          console.error('API error response:', err.response.data);
+          showErrorToast(err.response.data.message || err.response.data.error || 'Invalid username or password');
+        } else {
+          // Generic error message
+          console.error('Generic error:', err.message);
+          showErrorToast(err.message || 'An error occurred during login');
+        }
       } finally {
+        console.log('Login process completed, setting loading to false');
         setLoading(false);
       }
     },
@@ -69,6 +72,9 @@ const Login = () => {
 
   return (
     <Container component="main" maxWidth="xs">
+      {/* Toast container for notifications */}
+      <ToastContainer />
+
       <Box
         sx={{
           marginTop: 8,
@@ -88,34 +94,30 @@ const Login = () => {
           }}
         >
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-            Incentive Management System
+            Mr. Munim
           </Typography>
 
           <Typography component="h2" variant="h6" sx={{ mb: 3 }}>
             Sign In
           </Typography>
 
-          {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {error}
-            </Alert>
-          )}
+          {/* Toast messages will be shown instead of alerts */}
 
           <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1, width: '100%' }}>
             <TextField
               margin="normal"
               required
               fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
+              id="username"
+              label="Email"
+              name="username"
+              autoComplete="username"
               autoFocus
-              value={formik.values.email}
+              value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
+              error={formik.touched.username && Boolean(formik.errors.username)}
+              helperText={formik.touched.username && formik.errors.username}
             />
 
             <TextField
@@ -143,6 +145,8 @@ const Login = () => {
             >
               {loading ? <CircularProgress size={24} /> : 'Sign In'}
             </Button>
+
+
 
             <Box sx={{ mt: 2, textAlign: 'center' }}>
               <Link component={RouterLink} to="/forgot-password" variant="body2">

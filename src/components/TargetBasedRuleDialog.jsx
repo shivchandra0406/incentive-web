@@ -51,10 +51,13 @@ const TargetBasedRuleDialog = ({ open, onClose }) => {
   return (
     <div className="dialog-overlay">
       <div className="dialog-content">
+        {/* Fixed header */}
         <div className="dialog-header">
           <h2>Mr. Munim - Create Target-Based Rule</h2>
+          <button type="button" className="close-button" onClick={onClose}>&times;</button>
         </div>
 
+        {/* Scrollable content */}
         <form onSubmit={handleSubmit}>
           <div className="dialog-body">
             <div className="form-section">
@@ -295,6 +298,7 @@ const TargetBasedRuleDialog = ({ open, onClose }) => {
             </div>
           </div>
 
+          </div>
           <div className="dialog-footer">
             <button type="submit" className="submit-button" disabled={loading}>
               {loading ? 'Submitting...' : 'Submit'}

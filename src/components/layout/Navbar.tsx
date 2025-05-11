@@ -1,24 +1,24 @@
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Button, 
-  IconButton, 
-  Box, 
-  Menu, 
-  MenuItem, 
-  Avatar 
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  IconButton,
+  Box,
+  Menu,
+  MenuItem,
+  Avatar
 } from '@mui/material';
-import { 
-  Menu as MenuIcon, 
-  AccountCircle, 
-  Dashboard, 
-  Rule, 
-  BusinessCenter, 
-  Payment, 
-  Workflow 
+import {
+  Menu as MenuIcon,
+  AccountCircle,
+  Dashboard,
+  Rule,
+  BusinessCenter,
+  Payment,
+  Workflow
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -55,9 +55,9 @@ const Navbar = ({ toggleDrawer }: NavbarProps) => {
         >
           <MenuIcon />
         </IconButton>
-        
+
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Incentive Management
+          Mr. Munim
         </Typography>
 
         {user ? (
@@ -65,7 +65,7 @@ const Navbar = ({ toggleDrawer }: NavbarProps) => {
             <Typography variant="body1" sx={{ mr: 2 }}>
               {user.email}
             </Typography>
-            
+
             <IconButton
               size="large"
               aria-label="account of current user"
@@ -78,7 +78,7 @@ const Navbar = ({ toggleDrawer }: NavbarProps) => {
                 {user.email.charAt(0).toUpperCase()}
               </Avatar>
             </IconButton>
-            
+
             <Menu
               id="menu-appbar"
               anchorEl={anchorEl}

@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import './App.css';
 import IncentiveRulesList from './pages/incentiveRules/IncentiveRulesList';
+import { authService } from './services';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { showSuccessToast, showErrorToast } from './utils/toastUtils';
 
 function AppLegacy() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -8,10 +12,27 @@ function AppLegacy() {
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     if (email && password) {
-      setIsLoggedIn(true);
+      try {
+        console.log('Attempting login with:', { username: email });
+
+        // Call the login API
+        const response = await authService.login(email, password);
+        console.log('Login API response:', response);
+
+        // If login is successful
+        if (response.success) {
+          showSuccessToast('Login successful! Welcome to Mr. Munim.');
+          setIsLoggedIn(true);
+        } else {
+          showErrorToast(response.error || 'Login failed. Please check your credentials.');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        showErrorToast('Login failed. Please check your credentials.');
+      }
     }
   };
 
@@ -19,6 +40,7 @@ function AppLegacy() {
     setIsLoggedIn(false);
     setEmail('');
     setPassword('');
+    showSuccessToast('You have been successfully logged out.');
   };
 
   // Sample data for the deals table
@@ -39,14 +61,17 @@ function AppLegacy() {
   if (!isLoggedIn) {
     return (
       <div className="login-container">
+        {/* Toast container for notifications */}
+        <ToastContainer />
+
         <div className="login-form">
-          <h1>Incentive Management</h1>
+          <h1>Mr. Munim</h1>
           <h3>Login to your account</h3>
           <form onSubmit={handleLogin}>
             <div className="form-group">
               <label>Email</label>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -71,10 +96,13 @@ function AppLegacy() {
   // Dashboard and other modules
   return (
     <div className="app-container">
+      {/* Toast container for notifications */}
+      <ToastContainer />
+
       {/* Sidebar */}
       <div className="sidebar">
         <div className="sidebar-header">
-          <h3>Incentive Management</h3>
+          <h3>Mr. Munim</h3>
         </div>
         <ul className="sidebar-menu">
           <li
