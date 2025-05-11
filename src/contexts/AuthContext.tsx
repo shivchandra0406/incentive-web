@@ -104,23 +104,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Simplified login function
   const login = async (username: string, password: string) => {
+    console.log('AuthContext login function called with username:', username);
     try {
       // Call the real login service
+      console.log('Calling authService.login');
       const response = await authService.login(username, password);
+      console.log('authService.login response:', response);
 
       // Update state with user data
       if (response.success && response.data) {
+        console.log('Login successful, setting token and user');
         setToken(response.data.token);
         setUser(response.data.user);
 
         // Navigate to dashboard
+        console.log('Navigating to dashboard');
         navigate('/dashboard');
         return true;
       }
+      console.log('Login failed, response:', response);
       return false;
     } catch (error) {
-      console.error('Error during login:', error);
-      return false;
+      console.error('Error during login in AuthContext:', error);
+      throw error; // Re-throw the error so it can be caught in the Login component
     }
   };
 

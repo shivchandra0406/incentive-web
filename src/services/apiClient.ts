@@ -1,9 +1,9 @@
 import axios from 'axios';
-import type { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
+import type { AxiosRequestConfig, AxiosError } from 'axios';
 
 // Create axios instance
 const apiClient = axios.create({
-  baseURL: 'https://localhost:44307/api', // Real API endpoint
+  baseURL: 'http://localhost:44307/api', // Real API endpoint (using HTTP to avoid SSL issues)
   headers: {
     'Content-Type': 'application/json',
     'X-Tenant-ID': 'shiv', // Adding the tenant ID header
@@ -32,7 +32,7 @@ apiClient.interceptors.response.use(
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
-    
+
     // If error is 401 Unauthorized and we haven't retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
@@ -41,13 +41,13 @@ apiClient.interceptors.response.use(
         // Try to refresh the token
         const refreshToken = window.localStorage.getItem('incentive_refreshToken');
         const token = window.localStorage.getItem('incentive_token');
-        
+
         if (!refreshToken || !token) {
           throw new Error('No refresh token available');
         }
-        
+
         const response = await axios.post(
-          'https://localhost:44307/api/Auth/refresh-token',
+          'http://localhost:44307/api/Auth/refresh-token',
           {
             token: token,
             refreshToken: refreshToken

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
@@ -14,12 +14,43 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
+import axios from 'axios';
 
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [apiTestResult, setApiTestResult] = useState<string | null>(null);
+
+  // Test direct API call on component mount
+  useEffect(() => {
+    const testApiConnection = async () => {
+      try {
+        console.log('Testing direct API connection...');
+        const response = await axios.post(
+          'http://localhost:44307/api/Auth/login',
+          {
+            userName: 'shivchand',
+            password: 'Shiv@406!'
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Tenant-ID': 'shiv'
+            }
+          }
+        );
+        console.log('Direct API test successful:', response);
+        setApiTestResult('API connection test successful');
+      } catch (error: any) {
+        console.error('Direct API test failed:', error);
+        setApiTestResult(`API connection test failed: ${error.message}`);
+      }
+    };
+
+    testApiConnection();
+  }, []);
 
   const formik = useFormik({
     initialValues: {
@@ -33,29 +64,36 @@ const Login = () => {
         .required('Password is required'),
     }),
     onSubmit: async (values) => {
+      console.log('Form submitted with values:', values);
       setLoading(true);
       setError(null);
 
       try {
+        console.log('Calling login function with username:', values.username);
         // Call the login function from AuthContext which uses the real API
         const success = await login(values.username, values.password);
+        console.log('Login function returned:', success);
 
         if (!success) {
+          console.log('Login failed, setting error message');
           setError('Login failed. Please check your credentials.');
         }
 
         // Navigation is handled by the login function in AuthContext
       } catch (err: any) {
+        console.error('Login error caught in form submit:', err);
         // Handle specific API error messages
         if (err.response && err.response.data) {
           // If the API returns a specific error message
+          console.error('API error response:', err.response.data);
           setError(err.response.data.message || err.response.data.error || 'Invalid username or password');
         } else {
           // Generic error message
+          console.error('Generic error:', err.message);
           setError(err.message || 'An error occurred during login');
         }
-        console.error('Login error:', err);
       } finally {
+        console.log('Login process completed, setting loading to false');
         setLoading(false);
       }
     },
@@ -92,6 +130,12 @@ const Login = () => {
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
+            </Alert>
+          )}
+
+          {apiTestResult && (
+            <Alert severity={apiTestResult.includes('failed') ? 'warning' : 'info'} sx={{ width: '100%', mb: 2 }}>
+              {apiTestResult}
             </Alert>
           )}
 
@@ -136,6 +180,41 @@ const Login = () => {
               disabled={loading}
             >
               {loading ? <CircularProgress size={24} /> : 'Sign In'}
+            </Button>
+
+            <Button
+              type="button"
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 2 }}
+              onClick={async () => {
+                try {
+                  setLoading(true);
+                  console.log('Manual API test button clicked');
+                  const response = await axios.post(
+                    'http://localhost:44307/api/Auth/login',
+                    {
+                      userName: 'shivchand',
+                      password: 'Shiv@406!'
+                    },
+                    {
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-Tenant-ID': 'shiv'
+                      }
+                    }
+                  );
+                  console.log('Manual API test successful:', response);
+                  setApiTestResult('Manual API test successful');
+                } catch (error: any) {
+                  console.error('Manual API test failed:', error);
+                  setApiTestResult(`Manual API test failed: ${error.message}`);
+                } finally {
+                  setLoading(false);
+                }
+              }}
+            >
+              Test API Directly
             </Button>
 
             <Box sx={{ mt: 2, textAlign: 'center' }}>

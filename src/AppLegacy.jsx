@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './App.css';
 import IncentiveRulesList from './pages/incentiveRules/IncentiveRulesList';
+import { authService } from './services';
 
 function AppLegacy() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -12,11 +13,11 @@ function AppLegacy() {
     e.preventDefault();
     if (email && password) {
       try {
-        // Import auth service for making the API call
-        const { authService } = require('./services');
+        console.log('Attempting login with:', { username: email });
 
         // Call the login API
         const response = await authService.login(email, password);
+        console.log('Login API response:', response);
 
         // If login is successful
         if (response.success) {

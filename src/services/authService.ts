@@ -27,16 +27,21 @@ interface AuthResponse {
 const authService = {
   login: async (username: string, password: string): Promise<AuthResponse> => {
     try {
+      console.log('Attempting login with:', { username });
+
       // Call the real login API
+      console.log('Making API call to /Auth/login');
       const response = await apiClient.post<LoginResponse>('/Auth/login', {
         userName: username,
         password: password
       });
 
+      console.log('Login API response:', response);
+
       // Extract token from response
       const token = response.data.token;
       const refreshToken = response.data.refreshToken;
-      
+
       if (!token) {
         throw new Error('No token received from server');
       }
@@ -65,6 +70,12 @@ const authService = {
       };
     } catch (error: any) {
       console.error('Login error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers
+      });
       return {
         success: false,
         error: error.response?.data?.message || error.message || 'Login failed'
@@ -76,7 +87,7 @@ const authService = {
     try {
       const refreshToken = window.localStorage.getItem('incentive_refreshToken');
       const token = window.localStorage.getItem('incentive_token');
-      
+
       if (!refreshToken || !token) {
         throw new Error('No refresh token available');
       }
