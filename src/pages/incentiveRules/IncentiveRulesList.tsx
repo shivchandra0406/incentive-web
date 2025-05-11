@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -17,32 +17,35 @@ import {
   Tooltip,
   CircularProgress,
   Alert,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as ViewIcon,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
-import Layout from '../../components/layout/Layout';
+import Layout from '../../components/layout/Layout.jsx';
 import { incentiveRulesService } from '../../services/api';
 
 interface IncentiveRule {
   id: string;
   name: string;
-  description: string;
-  isActive: boolean;
-  startDate: string;
-  endDate: string;
-  calculationType: string;
-  calculationValue: number;
-  targetType: string;
-  targetValue: number;
-  targetFrequency: string;
-  currencyCode: string;
-  appliedRuleType: string;
-  createdAt: string;
+  type: 'Target' | 'Tier' | 'Project' | 'Location' | 'Team';
+  description?: string;
+  status: 'Active' | 'Inactive';
   createdBy: string;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 interface PaginatedResponse {
@@ -53,7 +56,7 @@ interface PaginatedResponse {
   totalPages: number;
 }
 
-const IncentiveRulesList = () => {
+const IncentiveRulesList: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,18 +64,25 @@ const IncentiveRulesList = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [ruleToDelete, setRuleToDelete] = useState<string | null>(null);
+
+  const menuOpen = Boolean(anchorEl);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const fetchRules = async () => {
     setLoading(true);
     setError(null);
     try {
+      // Using the GET /api/incentives/rules endpoint
       const response = await incentiveRulesService.getAll(page + 1, rowsPerPage);
       if (response.success) {
         const data = response.data as PaginatedResponse;
         setRules(data.items);
         setTotalCount(data.totalCount);
       } else {
-        setError(response.message || 'Failed to fetch incentive rules');
+        setError('Failed to fetch incentive rules');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred while fetching incentive rules');
@@ -86,7 +96,7 @@ const IncentiveRulesList = () => {
     fetchRules();
   }, [page, rowsPerPage]);
 
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
 
@@ -95,8 +105,17 @@ const IncentiveRulesList = () => {
     setPage(0);
   };
 
-  const handleAddRule = () => {
-    navigate('/incentive-rules/create');
+  const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleCreateRule = (type: string) => {
+    handleMenuClose();
+    navigate(`/incentive-rules/create/${type.toLowerCase()}`);
   };
 
   const handleEditRule = (id: string) => {
@@ -107,14 +126,27 @@ const IncentiveRulesList = () => {
     navigate(`/incentive-rules/${id}`);
   };
 
-  const handleDeleteRule = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this incentive rule?')) {
+  const handleDeleteClick = (id: string) => {
+    setRuleToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteCancel = () => {
+    setRuleToDelete(null);
+    setDeleteDialogOpen(false);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (ruleToDelete) {
       try {
-        const response = await incentiveRulesService.delete(id);
+        // Using the DELETE /api/incentives/rules/{id} endpoint
+        const response = await incentiveRulesService.delete(ruleToDelete);
         if (response.success) {
           fetchRules();
+          setDeleteDialogOpen(false);
+          setRuleToDelete(null);
         } else {
-          setError(response.message || 'Failed to delete incentive rule');
+          setError('Failed to delete incentive rule');
         }
       } catch (err: any) {
         setError(err.response?.data?.message || 'An error occurred while deleting the incentive rule');
@@ -133,14 +165,69 @@ const IncentiveRulesList = () => {
         <Typography variant="h4" component="h1">
           Incentive Rules
         </Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddRule}
-        >
-          Add New Rule
-        </Button>
+        <div>
+          <Button
+            ref={buttonRef}
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            endIcon={<ExpandMoreIcon />}
+            onClick={(e) => handleMenuOpen(e)}
+            aria-controls={menuOpen ? 'create-rule-menu' : undefined}
+            aria-haspopup="true"
+            aria-expanded={menuOpen ? 'true' : undefined}
+          >
+            Create Rule
+          </Button>
+          <Menu
+            id="create-rule-menu"
+            anchorEl={anchorEl}
+            open={menuOpen}
+            onClose={handleMenuClose}
+            MenuListProps={{
+              'aria-labelledby': 'create-rule-button',
+            }}
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+          >
+            <MenuItem onClick={() => handleCreateRule('Target')}>
+              <ListItemIcon>
+                <Box component="span" sx={{ fontSize: '1.2rem' }}>🎯</Box>
+              </ListItemIcon>
+              <ListItemText>Target-based Rule</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleCreateRule('Tier')}>
+              <ListItemIcon>
+                <Box component="span" sx={{ fontSize: '1.2rem' }}>📊</Box>
+              </ListItemIcon>
+              <ListItemText>Tier-based Rule</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleCreateRule('Project')}>
+              <ListItemIcon>
+                <Box component="span" sx={{ fontSize: '1.2rem' }}>💼</Box>
+              </ListItemIcon>
+              <ListItemText>Project-based Rule</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleCreateRule('Location')}>
+              <ListItemIcon>
+                <Box component="span" sx={{ fontSize: '1.2rem' }}>📍</Box>
+              </ListItemIcon>
+              <ListItemText>Location-based Rule</ListItemText>
+            </MenuItem>
+            <MenuItem onClick={() => handleCreateRule('Team')}>
+              <ListItemIcon>
+                <Box component="span" sx={{ fontSize: '1.2rem' }}>👥</Box>
+              </ListItemIcon>
+              <ListItemText>Team-based Rule</ListItemText>
+            </MenuItem>
+          </Menu>
+        </div>
       </Box>
 
       {error && (
@@ -154,49 +241,46 @@ const IncentiveRulesList = () => {
           <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
             <CircularProgress />
           </Box>
+        ) : rules.length === 0 ? (
+          <Box sx={{ p: 3, textAlign: 'center' }}>
+            <Typography variant="body1" color="textSecondary">
+              No incentive rules found. Create your first rule by clicking the "Create Rule" button.
+            </Typography>
+          </Box>
         ) : (
           <>
             <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Name</TableCell>
+                    <TableCell>Rule Name</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Created By</TableCell>
+                    <TableCell>Created Date</TableCell>
                     <TableCell>Status</TableCell>
-                    <TableCell>Calculation</TableCell>
-                    <TableCell>Target</TableCell>
-                    <TableCell>Date Range</TableCell>
                     <TableCell>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {rules.map((rule) => (
-                    <TableRow key={rule.id}>
+                    <TableRow key={rule.id} hover>
                       <TableCell>
                         <Typography variant="body1">{rule.name}</Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {rule.description}
-                        </Typography>
+                        {rule.description && (
+                          <Typography variant="body2" color="textSecondary">
+                            {rule.description}
+                          </Typography>
+                        )}
                       </TableCell>
+                      <TableCell>{rule.type}</TableCell>
+                      <TableCell>{rule.createdBy}</TableCell>
+                      <TableCell>{formatDate(rule.createdAt)}</TableCell>
                       <TableCell>
                         <Chip
-                          label={rule.isActive ? 'Active' : 'Inactive'}
-                          color={rule.isActive ? 'success' : 'default'}
+                          label={rule.status}
+                          color={rule.status === 'Active' ? 'success' : 'default'}
                           size="small"
                         />
-                      </TableCell>
-                      <TableCell>
-                        {rule.calculationType} ({rule.calculationValue}
-                        {rule.calculationType === 'Percentage' ? '%' : ` ${rule.currencyCode}`})
-                      </TableCell>
-                      <TableCell>
-                        {rule.targetType}: {rule.targetValue} {rule.currencyCode}
-                        <br />
-                        <Typography variant="body2" color="textSecondary">
-                          {rule.targetFrequency} • {rule.appliedRuleType}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        {formatDate(rule.startDate)} - {formatDate(rule.endDate)}
                       </TableCell>
                       <TableCell>
                         <Tooltip title="View">
@@ -210,7 +294,7 @@ const IncentiveRulesList = () => {
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="Delete">
-                          <IconButton onClick={() => handleDeleteRule(rule.id)}>
+                          <IconButton onClick={() => handleDeleteClick(rule.id)}>
                             <DeleteIcon />
                           </IconButton>
                         </Tooltip>
@@ -232,8 +316,33 @@ const IncentiveRulesList = () => {
           </>
         )}
       </Paper>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this incentive rule? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Layout>
   );
-};
+}
 
 export default IncentiveRulesList;

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
+import IncentiveRulesList from './pages/incentiveRules/IncentiveRulesList';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -44,20 +45,20 @@ function App() {
           <form onSubmit={handleLogin}>
             <div className="form-group">
               <label>Email</label>
-              <input 
-                type="email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                required 
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
               />
             </div>
             <div className="form-group">
               <label>Password</label>
-              <input 
-                type="password" 
-                value={password} 
-                onChange={(e) => setPassword(e.target.value)} 
-                required 
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
             <button type="submit" className="login-button">Sign In</button>
@@ -76,32 +77,32 @@ function App() {
           <h3>Incentive Management</h3>
         </div>
         <ul className="sidebar-menu">
-          <li 
-            className={activeTab === 'dashboard' ? 'active' : ''} 
+          <li
+            className={activeTab === 'dashboard' ? 'active' : ''}
             onClick={() => setActiveTab('dashboard')}
           >
             📊 Dashboard
           </li>
-          <li 
-            className={activeTab === 'incentive-rules' ? 'active' : ''} 
+          <li
+            className={activeTab === 'incentive-rules' ? 'active' : ''}
             onClick={() => setActiveTab('incentive-rules')}
           >
             📜 Incentive Rules
           </li>
-          <li 
-            className={activeTab === 'deals' ? 'active' : ''} 
+          <li
+            className={activeTab === 'deals' ? 'active' : ''}
             onClick={() => setActiveTab('deals')}
           >
             💼 Deals
           </li>
-          <li 
-            className={activeTab === 'payouts' ? 'active' : ''} 
+          <li
+            className={activeTab === 'payouts' ? 'active' : ''}
             onClick={() => setActiveTab('payouts')}
           >
             💰 Payouts
           </li>
-          <li 
-            className={activeTab === 'workflow' ? 'active' : ''} 
+          <li
+            className={activeTab === 'workflow' ? 'active' : ''}
             onClick={() => setActiveTab('workflow')}
           >
             🔄 Workflow
@@ -197,10 +198,7 @@ function App() {
 
         {/* Incentive Rules Content */}
         {activeTab === 'incentive-rules' && (
-          <div className="module-content">
-            <h3>Incentive Rules Module</h3>
-            <p>This is where you can manage your incentive rules.</p>
-          </div>
+          <IncentiveRulesList />
         )}
 
         {/* Deals Content */}
