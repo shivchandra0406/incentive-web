@@ -1,0 +1,170 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Container,
+  Paper,
+  ThemeProvider,
+  createTheme,
+  CssBaseline
+} from '@mui/material';
+
+// Create a simple theme
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#8E24AA', // Purple
+    },
+    secondary: {
+      main: '#00BCD4', // Cyan
+    },
+  },
+});
+
+// Simple Login Component
+function LoginPage({ onLogin }: { onLogin: (email: string) => void }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (email && password) {
+      // Simple validation
+      localStorage.setItem('user', JSON.stringify({ email }));
+      onLogin(email);
+    } else {
+      setError('Please enter both email and password');
+    }
+  };
+
+  return (
+    <Container maxWidth="sm">
+      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Incentive Management
+        </Typography>
+        <Typography variant="h6" align="center" gutterBottom>
+          Login to your account
+        </Typography>
+        
+        {error && (
+          <Typography color="error" align="center" sx={{ mb: 2 }}>
+            {error}
+          </Typography>
+        )}
+        
+        <Box component="form" onSubmit={handleLogin} sx={{ mt: 2 }}>
+          <TextField
+            label="Email"
+            type="email"
+            fullWidth
+            margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          
+          <TextField
+            label="Password"
+            type="password"
+            fullWidth
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            color="primary"
+            sx={{ mt: 3, mb: 2 }}
+          >
+            Sign In
+          </Button>
+        </Box>
+      </Paper>
+    </Container>
+  );
+}
+
+// Dashboard Component
+function Dashboard({ email, onLogout }: { email: string, onLogout: () => void }) {
+  return (
+    <Container maxWidth="md">
+      <Paper elevation={3} sx={{ p: 4, mt: 8, textAlign: 'center' }}>
+        <Typography variant="h4" gutterBottom>
+          Welcome to Incentive Management Dashboard
+        </Typography>
+        <Typography variant="body1" paragraph>
+          You are logged in as {email}
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary"
+          onClick={onLogout}
+        >
+          Logout
+        </Button>
+      </Paper>
+    </Container>
+  );
+}
+
+// Main App Component
+function App() {
+  // Check if user is already logged in
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  
+  // Check localStorage on component mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        setIsLoggedIn(true);
+        setUserEmail(userData.email);
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('user');
+      }
+    }
+  }, []);
+
+  const handleLogin = (email: string) => {
+    setIsLoggedIn(true);
+    setUserEmail(email);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setIsLoggedIn(false);
+    setUserEmail('');
+  };
+
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: '#f5f5f5'
+      }}>
+        {isLoggedIn ? (
+          <Dashboard email={userEmail} onLogout={handleLogout} />
+        ) : (
+          <LoginPage onLogin={handleLogin} />
+        )}
+      </Box>
+    </ThemeProvider>
+  );
+}
+
+export default App;
