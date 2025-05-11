@@ -23,13 +23,12 @@ const Login = () => {
 
   const formik = useFormik({
     initialValues: {
-      email: '',
+      username: '',
       password: '',
     },
     validationSchema: Yup.object({
-      email: Yup.string()
-        .email('Invalid email address')
-        .required('Email is required'),
+      username: Yup.string()
+        .required('Username is required'),
       password: Yup.string()
         .required('Password is required'),
     }),
@@ -39,7 +38,7 @@ const Login = () => {
 
       try {
         // Call the login function from AuthContext which uses the real API
-        const success = await login(values.email, values.password);
+        const success = await login(values.username, values.password);
 
         if (!success) {
           setError('Login failed. Please check your credentials.');
@@ -101,16 +100,16 @@ const Login = () => {
               margin="normal"
               required
               fullWidth
-              id="email"
-              label="Email Address"
-              name="email"
-              autoComplete="email"
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
               autoFocus
-              value={formik.values.email}
+              value={formik.values.username}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              error={formik.touched.email && Boolean(formik.errors.email)}
-              helperText={formik.touched.email && formik.errors.email}
+              error={formik.touched.username && Boolean(formik.errors.username)}
+              helperText={formik.touched.username && formik.errors.username}
             />
 
             <TextField
