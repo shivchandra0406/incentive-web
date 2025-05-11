@@ -88,7 +88,7 @@ const Login = () => {
           }}
         >
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-            Incentive Management System
+            Mr. Munim
           </Typography>
 
           <Typography component="h2" variant="h6" sx={{ mb: 3 }}>

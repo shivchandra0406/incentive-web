@@ -40,7 +40,7 @@ function App() {
     return (
       <div className="login-container">
         <div className="login-form">
-          <h1>Incentive Management</h1>
+          <h1>Mr. Munim</h1>
           <h3>Login to your account</h3>
           <form onSubmit={handleLogin}>
             <div className="form-group">
@@ -74,7 +74,7 @@ function App() {
       {/* Sidebar */}
       <div className="sidebar">
         <div className="sidebar-header">
-          <h3>Incentive Management</h3>
+          <h3>Mr. Munim</h3>
         </div>
         <ul className="sidebar-menu">
           <li
