@@ -6,7 +6,7 @@ import {
   Paper,
   Typography,
   TextField,
-  Grid,
+  Stack,
   FormControl,
   InputLabel,
   Select,
@@ -24,40 +24,25 @@ import { incentiveRulesService } from '../../services/api';
 
 interface IncentiveRuleFormValues {
   name: string;
+  type: 'Target' | 'Tier' | 'Project' | 'Location' | 'Team';
   description: string;
-  isActive: boolean;
-  startDate: string;
-  endDate: string;
-  calculationType: string;
-  calculationValue: number;
-  targetType: string;
-  targetValue: number;
-  targetFrequency: string;
-  currencyCode: string;
-  appliedRuleType: string;
+  status: 'Active' | 'Inactive';
 }
 
 const IncentiveRuleForm = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, type } = useParams<{ id: string; type: string }>();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialValues, setInitialValues] = useState<IncentiveRuleFormValues>({
     name: '',
+    type: type as 'Target' | 'Tier' | 'Project' | 'Location' | 'Team' || 'Target',
     description: '',
-    isActive: true,
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().split('T')[0],
-    calculationType: 'Percentage',
-    calculationValue: 5,
-    targetType: 'Revenue',
-    targetValue: 100000,
-    targetFrequency: 'Quarterly',
-    currencyCode: 'USD',
-    appliedRuleType: 'Individual',
+    status: 'Active',
   });
 
-  const isEditMode = !!id;
+  const isEditMode = !!id && !window.location.pathname.includes('/view/');
+  const isViewMode = !!id && window.location.pathname.includes('/view/');
 
   useEffect(() => {
     if (isEditMode) {
@@ -70,24 +55,16 @@ const IncentiveRuleForm = () => {
     setError(null);
     try {
       const response = await incentiveRulesService.getById(id!);
-      if (response.success) {
+      if (response.success && response.data) {
         const rule = response.data;
         setInitialValues({
           name: rule.name,
-          description: rule.description,
-          isActive: rule.isActive,
-          startDate: new Date(rule.startDate).toISOString().split('T')[0],
-          endDate: new Date(rule.endDate).toISOString().split('T')[0],
-          calculationType: rule.calculationType,
-          calculationValue: rule.calculationValue,
-          targetType: rule.targetType,
-          targetValue: rule.targetValue,
-          targetFrequency: rule.targetFrequency,
-          currencyCode: rule.currencyCode,
-          appliedRuleType: rule.appliedRuleType,
+          type: rule.type as 'Target' | 'Tier' | 'Project' | 'Location' | 'Team',
+          description: rule.description || '',
+          status: rule.status as 'Active' | 'Inactive',
         });
       } else {
-        setError(response.message || 'Failed to fetch incentive rule details');
+        setError('Failed to fetch incentive rule details');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'An error occurred while fetching incentive rule details');
@@ -99,22 +76,9 @@ const IncentiveRuleForm = () => {
 
   const validationSchema = Yup.object({
     name: Yup.string().required('Name is required'),
-    description: Yup.string().required('Description is required'),
-    startDate: Yup.date().required('Start date is required'),
-    endDate: Yup.date()
-      .required('End date is required')
-      .min(Yup.ref('startDate'), 'End date must be after start date'),
-    calculationType: Yup.string().required('Calculation type is required'),
-    calculationValue: Yup.number()
-      .required('Calculation value is required')
-      .positive('Calculation value must be positive'),
-    targetType: Yup.string().required('Target type is required'),
-    targetValue: Yup.number()
-      .required('Target value is required')
-      .positive('Target value must be positive'),
-    targetFrequency: Yup.string().required('Target frequency is required'),
-    currencyCode: Yup.string().required('Currency code is required'),
-    appliedRuleType: Yup.string().required('Applied rule type is required'),
+    type: Yup.string().required('Rule type is required'),
+    description: Yup.string(),
+    status: Yup.string().required('Status is required'),
   });
 
   const formik = useFormik({
@@ -135,7 +99,7 @@ const IncentiveRuleForm = () => {
         if (response.success) {
           navigate('/incentive-rules');
         } else {
-          setError(response.message || `Failed to ${isEditMode ? 'update' : 'create'} incentive rule`);
+          setError(`Failed to ${isEditMode ? 'update' : 'create'} incentive rule`);
         }
       } catch (err: any) {
         setError(
@@ -175,246 +139,94 @@ const IncentiveRuleForm = () => {
 
       <Paper elevation={2} sx={{ p: 3 }}>
         <form onSubmit={formik.handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                id="name"
-                name="name"
-                label="Rule Name"
-                value={formik.values.name}
+          <Stack spacing={3}>
+            <TextField
+              fullWidth
+              id="name"
+              name="name"
+              label="Rule Name"
+              value={formik.values.name}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.name && Boolean(formik.errors.name)}
+              helperText={formik.touched.name && formik.errors.name}
+              disabled={isViewMode}
+            />
+
+            <FormControl fullWidth disabled={isViewMode}>
+              <InputLabel id="type-label">Rule Type</InputLabel>
+              <Select
+                labelId="type-label"
+                id="type"
+                name="type"
+                value={formik.values.type}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                error={formik.touched.name && Boolean(formik.errors.name)}
-                helperText={formik.touched.name && formik.errors.name}
-              />
-            </Grid>
+                error={formik.touched.type && Boolean(formik.errors.type)}
+                label="Rule Type"
+              >
+                <MenuItem value="Target">Target-based Rule</MenuItem>
+                <MenuItem value="Tier">Tier-based Rule</MenuItem>
+                <MenuItem value="Project">Project-based Rule</MenuItem>
+                <MenuItem value="Location">Location-based Rule</MenuItem>
+                <MenuItem value="Team">Team-based Rule</MenuItem>
+              </Select>
+              {formik.touched.type && formik.errors.type && (
+                <FormHelperText error>{formik.errors.type}</FormHelperText>
+              )}
+            </FormControl>
 
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                id="description"
-                name="description"
-                label="Description"
-                multiline
-                rows={3}
-                value={formik.values.description}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.description && Boolean(formik.errors.description)}
-                helperText={formik.touched.description && formik.errors.description}
-              />
-            </Grid>
+            <TextField
+              fullWidth
+              id="description"
+              name="description"
+              label="Description"
+              multiline
+              rows={3}
+              value={formik.values.description}
+              onChange={formik.handleChange}
+              onBlur={formik.handleBlur}
+              error={formik.touched.description && Boolean(formik.errors.description)}
+              helperText={formik.touched.description && formik.errors.description}
+              disabled={isViewMode}
+            />
 
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                id="startDate"
-                name="startDate"
-                label="Start Date"
-                type="date"
-                value={formik.values.startDate}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.startDate && Boolean(formik.errors.startDate)}
-                helperText={formik.touched.startDate && formik.errors.startDate}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                id="endDate"
-                name="endDate"
-                label="End Date"
-                type="date"
-                value={formik.values.endDate}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.endDate && Boolean(formik.errors.endDate)}
-                helperText={formik.touched.endDate && formik.errors.endDate}
-                InputLabelProps={{ shrink: true }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel id="calculationType-label">Calculation Type</InputLabel>
-                <Select
-                  labelId="calculationType-label"
-                  id="calculationType"
-                  name="calculationType"
-                  value={formik.values.calculationType}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.calculationType && Boolean(formik.errors.calculationType)}
-                  label="Calculation Type"
-                >
-                  <MenuItem value="Percentage">Percentage</MenuItem>
-                  <MenuItem value="FixedAmount">Fixed Amount</MenuItem>
-                  <MenuItem value="Tiered">Tiered</MenuItem>
-                </Select>
-                {formik.touched.calculationType && formik.errors.calculationType && (
-                  <FormHelperText error>{formik.errors.calculationType}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                id="calculationValue"
-                name="calculationValue"
-                label="Calculation Value"
-                type="number"
-                value={formik.values.calculationValue}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.calculationValue && Boolean(formik.errors.calculationValue)}
-                helperText={formik.touched.calculationValue && formik.errors.calculationValue}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel id="targetType-label">Target Type</InputLabel>
-                <Select
-                  labelId="targetType-label"
-                  id="targetType"
-                  name="targetType"
-                  value={formik.values.targetType}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.targetType && Boolean(formik.errors.targetType)}
-                  label="Target Type"
-                >
-                  <MenuItem value="Revenue">Revenue</MenuItem>
-                  <MenuItem value="Units">Units</MenuItem>
-                  <MenuItem value="Margin">Margin</MenuItem>
-                </Select>
-                {formik.touched.targetType && formik.errors.targetType && (
-                  <FormHelperText error>{formik.errors.targetType}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                id="targetValue"
-                name="targetValue"
-                label="Target Value"
-                type="number"
-                value={formik.values.targetValue}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.targetValue && Boolean(formik.errors.targetValue)}
-                helperText={formik.touched.targetValue && formik.errors.targetValue}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel id="targetFrequency-label">Target Frequency</InputLabel>
-                <Select
-                  labelId="targetFrequency-label"
-                  id="targetFrequency"
-                  name="targetFrequency"
-                  value={formik.values.targetFrequency}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.targetFrequency && Boolean(formik.errors.targetFrequency)}
-                  label="Target Frequency"
-                >
-                  <MenuItem value="Monthly">Monthly</MenuItem>
-                  <MenuItem value="Quarterly">Quarterly</MenuItem>
-                  <MenuItem value="Yearly">Yearly</MenuItem>
-                </Select>
-                {formik.touched.targetFrequency && formik.errors.targetFrequency && (
-                  <FormHelperText error>{formik.errors.targetFrequency}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel id="currencyCode-label">Currency</InputLabel>
-                <Select
-                  labelId="currencyCode-label"
-                  id="currencyCode"
-                  name="currencyCode"
-                  value={formik.values.currencyCode}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.currencyCode && Boolean(formik.errors.currencyCode)}
-                  label="Currency"
-                >
-                  <MenuItem value="USD">USD</MenuItem>
-                  <MenuItem value="EUR">EUR</MenuItem>
-                  <MenuItem value="GBP">GBP</MenuItem>
-                </Select>
-                {formik.touched.currencyCode && formik.errors.currencyCode && (
-                  <FormHelperText error>{formik.errors.currencyCode}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel id="appliedRuleType-label">Applied To</InputLabel>
-                <Select
-                  labelId="appliedRuleType-label"
-                  id="appliedRuleType"
-                  name="appliedRuleType"
-                  value={formik.values.appliedRuleType}
-                  onChange={formik.handleChange}
-                  onBlur={formik.handleBlur}
-                  error={formik.touched.appliedRuleType && Boolean(formik.errors.appliedRuleType)}
-                  label="Applied To"
-                >
-                  <MenuItem value="Individual">Individual</MenuItem>
-                  <MenuItem value="Team">Team</MenuItem>
-                  <MenuItem value="Department">Department</MenuItem>
-                </Select>
-                {formik.touched.appliedRuleType && formik.errors.appliedRuleType && (
-                  <FormHelperText error>{formik.errors.appliedRuleType}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12}>
+            <FormControl component="fieldset" disabled={isViewMode}>
               <FormControlLabel
                 control={
                   <Switch
-                    checked={formik.values.isActive}
-                    onChange={formik.handleChange}
-                    name="isActive"
+                    checked={formik.values.status === 'Active'}
+                    onChange={(e) => {
+                      formik.setFieldValue('status', e.target.checked ? 'Active' : 'Inactive');
+                    }}
+                    name="status"
                     color="primary"
                   />
                 }
-                label="Active"
+                label={formik.values.status === 'Active' ? 'Active' : 'Inactive'}
               />
-            </Grid>
+            </FormControl>
 
-            <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               <Button
                 variant="outlined"
                 onClick={() => navigate('/incentive-rules')}
                 disabled={loading}
               >
-                Cancel
+                {isViewMode ? 'Back' : 'Cancel'}
               </Button>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={24} /> : isEditMode ? 'Update' : 'Create'}
-              </Button>
-            </Grid>
-          </Grid>
+              {!isViewMode && (
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  disabled={loading}
+                >
+                  {loading ? <CircularProgress size={24} /> : isEditMode ? 'Update' : 'Create'}
+                </Button>
+              )}
+            </Box>
+          </Stack>
         </form>
       </Paper>
     </Layout>

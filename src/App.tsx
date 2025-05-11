@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -18,6 +19,7 @@ import {
   CardContent,
   Grid
 } from '@mui/material';
+import IncentiveRulesList from './pages/incentiveRules/IncentiveRulesList';
 
 // Simple Login Component
 function LoginPage({ onLogin }: { onLogin: (email: string) => void }) {
@@ -546,6 +548,7 @@ function App() {
   // Check if user is already logged in
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Check localStorage on component mount
   useEffect(() => {
@@ -573,10 +576,142 @@ function App() {
     setUserEmail('');
   };
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+  };
+
+  // Render the appropriate content based on the active tab
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'dashboard':
+        return <Dashboard email={userEmail} onLogout={handleLogout} />;
+      case 'incentive-rules':
+        return <IncentiveRulesList />;
+      default:
+        return <Dashboard email={userEmail} onLogout={handleLogout} />;
+    }
+  };
+
   return (
     <Box sx={{ height: '100vh' }}>
       {isLoggedIn ? (
-        <Dashboard email={userEmail} onLogout={handleLogout} />
+        <Box sx={{ display: 'flex', height: '100vh', bgcolor: '#f5f7fa' }}>
+          {/* Sidebar */}
+          <Drawer
+            variant="permanent"
+            anchor="left"
+            sx={{
+              width: 240,
+              flexShrink: 0,
+              '& .MuiDrawer-paper': {
+                width: 240,
+                boxSizing: 'border-box',
+                boxShadow: '0 0 10px rgba(0,0,0,0.05)',
+                border: 'none'
+              },
+            }}
+          >
+            <Box sx={{
+              p: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderBottom: '1px solid rgba(0,0,0,0.08)'
+            }}>
+              <Typography variant="h6" color="primary" fontWeight="bold">
+                Incentive Management
+              </Typography>
+            </Box>
+            <List sx={{ py: 2 }}>
+              {[
+                { text: 'Dashboard', icon: '📊', value: 'dashboard' },
+                { text: 'Incentive Rules', icon: '📜', value: 'incentive-rules' },
+                { text: 'Deals', icon: '💼', value: 'deals' },
+                { text: 'Payouts', icon: '💰', value: 'payouts' },
+                { text: 'Workflow', icon: '🔄', value: 'workflow' }
+              ].map((item) => (
+                <ListItem
+                  button
+                  key={item.text}
+                  onClick={() => handleTabChange(item.value)}
+                  sx={{
+                    borderRadius: '0 20px 20px 0',
+                    mx: 1,
+                    mb: 0.5,
+                    '&:hover': {
+                      bgcolor: 'rgba(25, 118, 210, 0.08)'
+                    },
+                    ...(activeTab === item.value && {
+                      bgcolor: 'rgba(25, 118, 210, 0.12)',
+                      color: 'primary.main',
+                      fontWeight: 'medium'
+                    })
+                  }}
+                >
+                  <Box component="span" sx={{ mr: 2, fontSize: '1.2rem' }}>{item.icon}</Box>
+                  <ListItemText primary={item.text} />
+                </ListItem>
+              ))}
+            </List>
+          </Drawer>
+
+          {/* Main content */}
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              p: { xs: 2, md: 3 },
+              overflow: 'auto',
+              transition: 'all 0.3s'
+            }}
+          >
+            {/* Header */}
+            <AppBar
+              position="static"
+              color="transparent"
+              elevation={0}
+              sx={{
+                mb: 3,
+                borderRadius: 2,
+                bgcolor: 'white',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
+              }}
+            >
+              <Toolbar>
+                <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+                  {activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('-', ' ')}
+                </Typography>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  bgcolor: 'rgba(25, 118, 210, 0.08)',
+                  borderRadius: 20,
+                  px: 2,
+                  py: 0.5,
+                  mr: 2
+                }}>
+                  <Box component="span" sx={{ mr: 1, fontSize: '1.2rem' }}>👤</Box>
+                  <Typography>{userEmail}</Typography>
+                </Box>
+                <Button
+                  color="primary"
+                  variant="outlined"
+                  onClick={handleLogout}
+                  sx={{
+                    borderRadius: 20,
+                    textTransform: 'none',
+                    px: 2
+                  }}
+                >
+                  Logout
+                </Button>
+              </Toolbar>
+            </AppBar>
+
+            {/* Content based on active tab */}
+            {renderContent()}
+          </Box>
+        </Box>
       ) : (
         <LoginPage onLogin={handleLogin} />
       )}
