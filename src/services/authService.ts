@@ -27,14 +27,16 @@ interface AuthResponse {
 const authService = {
   login: async (username: string, password: string): Promise<AuthResponse> => {
     try {
-      console.log('Attempting login with:', { username });
+      console.log('Attempting login with username from form:', { username });
 
-      // Call the real login API
-      console.log('Making API call to /Auth/login');
-      const response = await apiClient.post<LoginResponse>('/Auth/login', {
+      // Use the username and password from the form
+      const loginData = {
         userName: username,
         password: password
-      });
+      };
+
+      console.log('Making API call to /Auth/login with form data');
+      const response = await apiClient.post<LoginResponse>('/Auth/login', loginData);
 
       console.log('Login API response:', response);
 

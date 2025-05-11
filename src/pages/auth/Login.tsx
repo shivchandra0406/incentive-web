@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
@@ -14,7 +14,7 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
-import axios from 'axios';
+import { authService } from '../../services';
 
 const Login = () => {
   const { login } = useAuth();
@@ -23,34 +23,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [apiTestResult, setApiTestResult] = useState<string | null>(null);
 
-  // Test direct API call on component mount
-  useEffect(() => {
-    const testApiConnection = async () => {
-      try {
-        console.log('Testing direct API connection...');
-        const response = await axios.post(
-          'http://localhost:44307/api/Auth/login',
-          {
-            userName: 'shivchand',
-            password: 'Shiv@406!'
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Tenant-ID': 'shiv'
-            }
-          }
-        );
-        console.log('Direct API test successful:', response);
-        setApiTestResult('API connection test successful');
-      } catch (error: any) {
-        console.error('Direct API test failed:', error);
-        setApiTestResult(`API connection test failed: ${error.message}`);
-      }
-    };
-
-    testApiConnection();
-  }, []);
+  // We don't need to test the API connection on mount anymore
+  // as we'll be using the form data to make the API call
 
   const formik = useFormik({
     initialValues: {
@@ -191,19 +165,10 @@ const Login = () => {
                 try {
                   setLoading(true);
                   console.log('Manual API test button clicked');
-                  const response = await axios.post(
-                    'http://localhost:44307/api/Auth/login',
-                    {
-                      userName: 'shivchand',
-                      password: 'Shiv@406!'
-                    },
-                    {
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'X-Tenant-ID': 'shiv'
-                      }
-                    }
-                  );
+
+                  // Use authService instead of direct axios call
+                  const response = await authService.login('shivchand', 'Shiv@406!');
+
                   console.log('Manual API test successful:', response);
                   setApiTestResult('Manual API test successful');
                 } catch (error: any) {
