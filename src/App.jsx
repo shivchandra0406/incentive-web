@@ -1,12 +1,20 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import './App.css';
 import IncentiveRulesList from './pages/incentiveRules/IncentiveRulesList';
+import TargetBasedRuleForm from './pages/incentiveRules/TargetBasedRuleForm';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // For demo purposes, we'll set isLoggedIn to true by default
+  // In a real app, you would check for a valid token
+  React.useEffect(() => {
+    setIsLoggedIn(true);
+  }, []);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -70,162 +78,163 @@ function App() {
 
   // Dashboard and other modules
   return (
-    <div className="app-container">
-      {/* Sidebar */}
-      <div className="sidebar">
-        <div className="sidebar-header">
-          <h3>Incentive Management</h3>
-        </div>
-        <ul className="sidebar-menu">
-          <li
-            className={activeTab === 'dashboard' ? 'active' : ''}
-            onClick={() => setActiveTab('dashboard')}
-          >
-            📊 Dashboard
-          </li>
-          <li
-            className={activeTab === 'incentive-rules' ? 'active' : ''}
-            onClick={() => setActiveTab('incentive-rules')}
-          >
-            📜 Incentive Rules
-          </li>
-          <li
-            className={activeTab === 'deals' ? 'active' : ''}
-            onClick={() => setActiveTab('deals')}
-          >
-            💼 Deals
-          </li>
-          <li
-            className={activeTab === 'payouts' ? 'active' : ''}
-            onClick={() => setActiveTab('payouts')}
-          >
-            💰 Payouts
-          </li>
-          <li
-            className={activeTab === 'workflow' ? 'active' : ''}
-            onClick={() => setActiveTab('workflow')}
-          >
-            🔄 Workflow
-          </li>
-        </ul>
-      </div>
-
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Header */}
-        <div className="header">
-          <h2>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('-', ' ')}</h2>
-          <div className="user-info">
-            <span className="user-email">{email}</span>
-            <button className="logout-button" onClick={handleLogout}>Logout</button>
+    <Router>
+      <div className="app-container">
+        {/* Sidebar */}
+        <div className="sidebar">
+          <div className="sidebar-header">
+            <h3>Incentive Management</h3>
           </div>
+          <ul className="sidebar-menu">
+            <li
+              className={activeTab === 'dashboard' ? 'active' : ''}
+              onClick={() => setActiveTab('dashboard')}
+            >
+              <Link to="/dashboard">📊 Dashboard</Link>
+            </li>
+            <li
+              className={activeTab === 'incentive-rules' ? 'active' : ''}
+              onClick={() => setActiveTab('incentive-rules')}
+            >
+              <Link to="/incentive-rules">📜 Incentive Rules</Link>
+            </li>
+            <li
+              className={activeTab === 'deals' ? 'active' : ''}
+              onClick={() => setActiveTab('deals')}
+            >
+              <Link to="/deals">💼 Deals</Link>
+            </li>
+            <li
+              className={activeTab === 'payouts' ? 'active' : ''}
+              onClick={() => setActiveTab('payouts')}
+            >
+              <Link to="/payouts">💰 Payouts</Link>
+            </li>
+            <li
+              className={activeTab === 'workflow' ? 'active' : ''}
+              onClick={() => setActiveTab('workflow')}
+            >
+              <Link to="/workflow">🔄 Workflow</Link>
+            </li>
+          </ul>
         </div>
 
-        {/* Dashboard Content */}
-        {activeTab === 'dashboard' && (
-          <div className="dashboard-content">
-            {/* Top Summary Cards */}
-            <h3 className="section-title">Overview</h3>
-            <div className="summary-cards">
-              <div className="card">
-                <div className="card-icon blue">📊</div>
-                <div className="card-content">
-                  <div className="card-title">Total Deals</div>
-                  <div className="card-value">87</div>
-                </div>
-              </div>
-              <div className="card">
-                <div className="card-icon green">🟢</div>
-                <div className="card-content">
-                  <div className="card-title">Active Deals</div>
-                  <div className="card-value">45</div>
-                </div>
-              </div>
-              <div className="card">
-                <div className="card-icon gray">✅</div>
-                <div className="card-content">
-                  <div className="card-title">Closed Deals</div>
-                  <div className="card-value">42</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Performance Section */}
-            <h3 className="section-title">Performance</h3>
-            <div className="performance-cards">
-              <div className="performance-card blue-gradient">
-                <div className="performance-icon">💰</div>
-                <div className="performance-title">Incentive Amount</div>
-                <div className="performance-value">₹20,000</div>
-                <div className="performance-badge">10% of target achieved</div>
-              </div>
-              <div className="performance-card purple-gradient">
-                <div className="performance-icon">🏆</div>
-                <div className="performance-title">Target Amount</div>
-                <div className="performance-value">₹2,00,000</div>
-                <div className="performance-badge">Quarterly target</div>
-              </div>
-            </div>
-
-            {/* Deals Table */}
-            <h3 className="section-title">Top 10 Deals</h3>
-            <div className="deals-table-container">
-              <table className="deals-table">
-                <thead>
-                  <tr>
-                    <th>Deal Name</th>
-                    <th>Status</th>
-                    <th>Value (₹)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dealData.map((deal, index) => (
-                    <tr key={deal.id} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
-                      <td>{deal.name}</td>
-                      <td>
-                        <span className={`status-badge ${deal.status === 'Active' ? 'active' : 'closed'}`}>
-                          {deal.status}
-                        </span>
-                      </td>
-                      <td className="value-cell">{deal.value.toLocaleString('en-IN')}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Main Content */}
+        <div className="main-content">
+          {/* Header */}
+          <div className="header">
+            <h2>{activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('-', ' ')}</h2>
+            <div className="user-info">
+              <span className="user-email">{email || 'demo@example.com'}</span>
+              <button className="logout-button" onClick={handleLogout}>Logout</button>
             </div>
           </div>
-        )}
 
-        {/* Incentive Rules Content */}
-        {activeTab === 'incentive-rules' && (
-          <IncentiveRulesList />
-        )}
+          {/* Routes */}
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" />} />
 
-        {/* Deals Content */}
-        {activeTab === 'deals' && (
-          <div className="module-content">
-            <h3>Deals Module</h3>
-            <p>This is where you can manage your deals.</p>
-          </div>
-        )}
+            <Route path="/dashboard" element={
+              <div className="dashboard-content">
+                {/* Top Summary Cards */}
+                <h3 className="section-title">Overview</h3>
+                <div className="summary-cards">
+                  <div className="card">
+                    <div className="card-icon blue">📊</div>
+                    <div className="card-content">
+                      <div className="card-title">Total Deals</div>
+                      <div className="card-value">87</div>
+                    </div>
+                  </div>
+                  <div className="card">
+                    <div className="card-icon green">🟢</div>
+                    <div className="card-content">
+                      <div className="card-title">Active Deals</div>
+                      <div className="card-value">45</div>
+                    </div>
+                  </div>
+                  <div className="card">
+                    <div className="card-icon gray">✅</div>
+                    <div className="card-content">
+                      <div className="card-title">Closed Deals</div>
+                      <div className="card-value">42</div>
+                    </div>
+                  </div>
+                </div>
 
-        {/* Payouts Content */}
-        {activeTab === 'payouts' && (
-          <div className="module-content">
-            <h3>Payouts Module</h3>
-            <p>This is where you can manage your payouts.</p>
-          </div>
-        )}
+                {/* Performance Section */}
+                <h3 className="section-title">Performance</h3>
+                <div className="performance-cards">
+                  <div className="performance-card blue-gradient">
+                    <div className="performance-icon">💰</div>
+                    <div className="performance-title">Incentive Amount</div>
+                    <div className="performance-value">₹20,000</div>
+                    <div className="performance-badge">10% of target achieved</div>
+                  </div>
+                  <div className="performance-card purple-gradient">
+                    <div className="performance-icon">🏆</div>
+                    <div className="performance-title">Target Amount</div>
+                    <div className="performance-value">₹2,00,000</div>
+                    <div className="performance-badge">Quarterly target</div>
+                  </div>
+                </div>
 
-        {/* Workflow Content */}
-        {activeTab === 'workflow' && (
-          <div className="module-content">
-            <h3>Workflow Module</h3>
-            <p>This is where you can manage your workflows.</p>
-          </div>
-        )}
+                {/* Deals Table */}
+                <h3 className="section-title">Top 10 Deals</h3>
+                <div className="deals-table-container">
+                  <table className="deals-table">
+                    <thead>
+                      <tr>
+                        <th>Deal Name</th>
+                        <th>Status</th>
+                        <th>Value (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dealData.map((deal, index) => (
+                        <tr key={deal.id} className={index % 2 === 0 ? 'even-row' : 'odd-row'}>
+                          <td>{deal.name}</td>
+                          <td>
+                            <span className={`status-badge ${deal.status === 'Active' ? 'active' : 'closed'}`}>
+                              {deal.status}
+                            </span>
+                          </td>
+                          <td className="value-cell">{deal.value.toLocaleString('en-IN')}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            } />
+
+            <Route path="/incentive-rules" element={<IncentiveRulesList />} />
+            <Route path="/incentive-rules/create/target" element={<TargetBasedRuleForm />} />
+
+            <Route path="/deals" element={
+              <div className="module-content">
+                <h3>Deals Module</h3>
+                <p>This is where you can manage your deals.</p>
+              </div>
+            } />
+
+            <Route path="/payouts" element={
+              <div className="module-content">
+                <h3>Payouts Module</h3>
+                <p>This is where you can manage your payouts.</p>
+              </div>
+            } />
+
+            <Route path="/workflow" element={
+              <div className="module-content">
+                <h3>Workflow Module</h3>
+                <p>This is where you can manage your workflows.</p>
+              </div>
+            } />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </Router>
   );
 }
 

@@ -129,6 +129,13 @@ body {
   font-weight: 500;
 }
 
+.sidebar-menu li a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+}
+
 .main-content {
   flex: 1;
   padding: 1.5rem;

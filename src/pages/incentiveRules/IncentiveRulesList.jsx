@@ -40,7 +40,11 @@ const IncentiveRulesList = () => {
 
   const handleCreateRule = (type) => {
     setCreateMenuOpen(false);
-    alert(`Create ${type}-based Rule clicked`);
+    if (type === 'Target') {
+      navigate('/incentive-rules/create/target');
+    } else {
+      alert(`Create ${type}-based Rule clicked`);
+    }
   };
 
   const handleViewRule = (id) => {
