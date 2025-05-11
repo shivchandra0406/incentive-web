@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { incentiveRulesService } from '../../services/api';
+import TargetBasedRuleDialog from '../../components/TargetBasedRuleDialog';
 
 const IncentiveRulesList = () => {
   const [loading, setLoading] = useState(true);
@@ -11,6 +12,7 @@ const IncentiveRulesList = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ruleToDelete, setRuleToDelete] = useState(null);
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
+  const [targetRuleDialogOpen, setTargetRuleDialogOpen] = useState(false);
 
   const menuButtonRef = useRef(null);
 
@@ -40,7 +42,15 @@ const IncentiveRulesList = () => {
 
   const handleCreateRule = (type) => {
     setCreateMenuOpen(false);
-    alert(`Create ${type}-based Rule clicked`);
+    if (type === 'Target') {
+      setTargetRuleDialogOpen(true);
+    } else {
+      alert(`Create ${type}-based Rule clicked`);
+    }
+  };
+
+  const handleCloseTargetRuleDialog = () => {
+    setTargetRuleDialogOpen(false);
   };
 
   const handleViewRule = (id) => {
@@ -192,7 +202,11 @@ const IncentiveRulesList = () => {
         </div>
       )}
 
-
+      {/* Target-Based Rule Dialog */}
+      <TargetBasedRuleDialog
+        open={targetRuleDialogOpen}
+        onClose={handleCloseTargetRuleDialog}
+      />
     </div>
   );
 };

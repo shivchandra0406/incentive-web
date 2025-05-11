@@ -36,6 +36,7 @@ import {
 } from '@mui/icons-material';
 import Layout from '../../components/layout/Layout.jsx';
 import { incentiveRulesService } from '../../services/api';
+import TargetBasedRuleDialog from '../../components/TargetBasedRuleDialog';
 
 interface IncentiveRule {
   id: string;
@@ -67,6 +68,7 @@ const IncentiveRulesList: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ruleToDelete, setRuleToDelete] = useState<string | null>(null);
+  const [targetRuleDialogOpen, setTargetRuleDialogOpen] = useState(false);
 
   const menuOpen = Boolean(anchorEl);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -115,7 +117,18 @@ const IncentiveRulesList: React.FC = () => {
 
   const handleCreateRule = (type: string) => {
     handleMenuClose();
-    navigate(`/incentive-rules/create/${type.toLowerCase()}`);
+    // Special case for Target-based Rule
+    if (type.toLowerCase() === 'target') {
+      console.log('Opening Target-based Rule dialog');
+      setTargetRuleDialogOpen(true);
+    } else {
+      console.log(`Navigating to ${type}-based Rule form`);
+      navigate(`/incentive-rules/create/${type.toLowerCase()}`);
+    }
+  };
+
+  const handleCloseTargetRuleDialog = () => {
+    setTargetRuleDialogOpen(false);
   };
 
   const handleEditRule = (id: string) => {
@@ -165,7 +178,21 @@ const IncentiveRulesList: React.FC = () => {
         <Typography variant="h4" component="h1">
           Incentive Rules
         </Typography>
-        <div>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => navigate('/test')}
+          >
+            Test Page
+          </Button>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => setTargetRuleDialogOpen(true)}
+          >
+            Direct to Target Rule
+          </Button>
           <Button
             ref={buttonRef}
             variant="contained"
@@ -227,7 +254,7 @@ const IncentiveRulesList: React.FC = () => {
               <ListItemText>Team-based Rule</ListItemText>
             </MenuItem>
           </Menu>
-        </div>
+        </Box>
       </Box>
 
       {error && (
@@ -341,6 +368,12 @@ const IncentiveRulesList: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Target-Based Rule Dialog */}
+      <TargetBasedRuleDialog
+        open={targetRuleDialogOpen}
+        onClose={handleCloseTargetRuleDialog}
+      />
     </Layout>
   );
 }
