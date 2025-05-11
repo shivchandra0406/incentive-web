@@ -1,0 +1,203 @@
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 550px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding-bottom: 20px;
+}
+
+.dialog-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e0e0e0;
+  text-align: center;
+}
+
+.dialog-header h2 {
+  margin: 0;
+  color: #3f51b5;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.dialog-body {
+  padding: 20px 30px;
+}
+
+.form-section {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #333;
+  font-size: 1rem;
+}
+
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+  width: 100%;
+  padding: 14px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  background-color: #fff;
+  height: 48px;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus,
+select:focus {
+  border-color: #3f51b5;
+  outline: none;
+}
+
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+.input-with-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-prefix {
+  position: absolute;
+  left: 12px;
+  color: #333;
+  font-weight: 500;
+}
+
+.input-with-prefix input {
+  padding-left: 30px;
+}
+
+.input-with-suffix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-suffix {
+  position: absolute;
+  right: 12px;
+  color: #333;
+  font-weight: 500;
+}
+
+.input-with-suffix input {
+  padding-right: 30px;
+}
+
+.radio-group {
+  display: flex;
+  gap: 30px;
+}
+
+.radio-group label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.radio-group input[type="radio"] {
+  margin-right: 8px;
+}
+
+.nested-form-group {
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: 2px solid #e0e0e0;
+}
+
+.dialog-footer {
+  padding: 16px 30px 30px;
+  display: flex;
+  justify-content: center;
+}
+
+.submit-button {
+  padding: 14px 0;
+  width: 100%;
+  background-color: #3f51b5;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  height: 48px;
+}
+
+.submit-button:disabled {
+  background-color: #9e9e9e;
+  cursor: not-allowed;
+}
+
+/* Custom radio button styling */
+input[type="radio"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  outline: none;
+  position: relative;
+}
+
+input[type="radio"]:checked {
+  border-color: #3f51b5;
+}
+
+input[type="radio"]:checked::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background-color: #3f51b5;
+  border-radius: 50%;
+}
