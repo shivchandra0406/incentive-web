@@ -14,7 +14,6 @@ import {
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useAuth } from '../../contexts/AuthContext';
-import { authService } from '../../services/api';
 
 const Login = () => {
   const { login } = useAuth();

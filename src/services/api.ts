@@ -1,9 +1,6 @@
 import axios from 'axios';
 import type { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
-// For development with self-signed certificates
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
 // Create axios instance
 const api = axios.create({
   baseURL: 'https://localhost:44307/api', // Real API endpoint

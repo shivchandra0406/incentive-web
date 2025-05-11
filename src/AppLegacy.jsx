@@ -12,25 +12,17 @@ function AppLegacy() {
     e.preventDefault();
     if (email && password) {
       try {
-        // Import axios for making the API call
-        const axios = require('axios');
+        // Import auth service for making the API call
+        const { authService } = require('./services');
 
         // Call the login API
-        const response = await axios.post('https://localhost:44307/api/Auth/login', {
-          userName: email,
-          password: password
-        }, {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Tenant-ID': 'shiv'
-          }
-        });
+        const response = await authService.login(email, password);
 
         // If login is successful
-        if (response.data) {
-          // Store the token in localStorage
-          localStorage.setItem('incentive_token', response.data.token || response.data.accessToken);
+        if (response.success) {
           setIsLoggedIn(true);
+        } else {
+          alert(response.error || 'Login failed. Please check your credentials.');
         }
       } catch (error) {
         console.error('Login error:', error);
