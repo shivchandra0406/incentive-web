@@ -34,7 +34,7 @@ import {
   Visibility as ViewIcon,
   ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
-import Layout from '../../components/layout/Layout';
+import Layout from '../../components/layout/Layout.jsx';
 import { incentiveRulesService } from '../../services/api';
 
 interface IncentiveRule {
