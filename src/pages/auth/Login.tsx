@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { 
-  Container, 
-  Box, 
-  Typography, 
-  TextField, 
-  Button, 
-  Paper, 
-  Link, 
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Link,
   Alert,
   CircularProgress
 } from '@mui/material';
@@ -37,18 +37,29 @@ const Login = () => {
     onSubmit: async (values) => {
       setLoading(true);
       setError(null);
-      
+
       try {
-        const response = await authService.login(values.email, values.password);
-        
-        if (response.success) {
-          login(response.data.token, response.data.refreshToken);
-          navigate('/dashboard');
-        } else {
-          setError(response.message || 'Login failed');
-        }
+        // For demo purposes, we'll just simulate a successful login
+        // In a real app, this would call an API
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Store user info in localStorage (simulating what authService would do)
+        const mockToken = "mock-jwt-token";
+        const mockUser = {
+          userId: "1",
+          email: values.email,
+          roles: ["User"]
+        };
+
+        localStorage.setItem('incentive_token', mockToken);
+        localStorage.setItem('incentive_user', JSON.stringify(mockUser));
+
+        // Call the login function from AuthContext
+        login(values.email, values.password);
+
+        // Navigate is handled by the login function in AuthContext
       } catch (err: any) {
-        setError(err.response?.data?.message || 'An error occurred during login');
+        setError(err.message || 'An error occurred during login');
         console.error('Login error:', err);
       } finally {
         setLoading(false);
@@ -79,17 +90,17 @@ const Login = () => {
           <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
             Incentive Management System
           </Typography>
-          
+
           <Typography component="h2" variant="h6" sx={{ mb: 3 }}>
             Sign In
           </Typography>
-          
+
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
             </Alert>
           )}
-          
+
           <Box component="form" onSubmit={formik.handleSubmit} sx={{ mt: 1, width: '100%' }}>
             <TextField
               margin="normal"
@@ -106,7 +117,7 @@ const Login = () => {
               error={formik.touched.email && Boolean(formik.errors.email)}
               helperText={formik.touched.email && formik.errors.email}
             />
-            
+
             <TextField
               margin="normal"
               required
@@ -122,7 +133,7 @@ const Login = () => {
               error={formik.touched.password && Boolean(formik.errors.password)}
               helperText={formik.touched.password && formik.errors.password}
             />
-            
+
             <Button
               type="submit"
               fullWidth
@@ -132,7 +143,7 @@ const Login = () => {
             >
               {loading ? <CircularProgress size={24} /> : 'Sign In'}
             </Button>
-            
+
             <Box sx={{ mt: 2, textAlign: 'center' }}>
               <Link component={RouterLink} to="/forgot-password" variant="body2">
                 Forgot password?
