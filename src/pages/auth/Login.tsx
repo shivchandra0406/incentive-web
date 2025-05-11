@@ -39,27 +39,23 @@ const Login = () => {
       setError(null);
 
       try {
-        // For demo purposes, we'll just simulate a successful login
-        // In a real app, this would call an API
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Call the login function from AuthContext which uses the real API
+        const success = await login(values.email, values.password);
 
-        // Store user info in localStorage (simulating what authService would do)
-        const mockToken = "mock-jwt-token";
-        const mockUser = {
-          userId: "1",
-          email: values.email,
-          roles: ["User"]
-        };
+        if (!success) {
+          setError('Login failed. Please check your credentials.');
+        }
 
-        localStorage.setItem('incentive_token', mockToken);
-        localStorage.setItem('incentive_user', JSON.stringify(mockUser));
-
-        // Call the login function from AuthContext
-        login(values.email, values.password);
-
-        // Navigate is handled by the login function in AuthContext
+        // Navigation is handled by the login function in AuthContext
       } catch (err: any) {
-        setError(err.message || 'An error occurred during login');
+        // Handle specific API error messages
+        if (err.response && err.response.data) {
+          // If the API returns a specific error message
+          setError(err.response.data.message || err.response.data.error || 'Invalid username or password');
+        } else {
+          // Generic error message
+          setError(err.message || 'An error occurred during login');
+        }
         console.error('Login error:', err);
       } finally {
         setLoading(false);

@@ -1,11 +1,15 @@
 import axios from 'axios';
 import type { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
+// For development with self-signed certificates
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 // Create axios instance
 const api = axios.create({
-  baseURL: '/api', // We'll use mock data instead of real API calls
+  baseURL: 'https://localhost:44307/api', // Real API endpoint
   headers: {
     'Content-Type': 'application/json',
+    'X-Tenant-ID': 'shiv', // Adding the tenant ID header
   },
   timeout: 10000, // 10 seconds timeout
 });
@@ -76,31 +80,44 @@ api.interceptors.response.use(
 // API service functions
 export const authService = {
   login: async (email: string, password: string) => {
-    // Simple mock login - always succeeds with any email/password
-    const mockUser = {
-      userId: '123',
-      email: email || 'user@example.com',
-      roles: ['User']
-    };
+    try {
+      // Call the real login API
+      const response = await api.post('/Auth/login', {
+        userName: email, // Using email as username
+        password: password
+      });
 
-    const mockToken = 'mock-jwt-token';
-    const mockRefreshToken = 'mock-refresh-token';
+      // Extract token from response
+      const token = response.data.token || response.data.accessToken;
 
-    // Store in localStorage
-    window.localStorage.setItem('incentive_token', mockToken);
-    window.localStorage.setItem('incentive_refreshToken', mockRefreshToken);
-    window.localStorage.setItem('incentive_user', JSON.stringify(mockUser));
-    window.localStorage.setItem('incentive_lastLogin', new Date().toISOString());
-
-    // Return success response
-    return {
-      success: true,
-      data: {
-        token: mockToken,
-        refreshToken: mockRefreshToken,
-        user: mockUser
+      if (!token) {
+        throw new Error('No token received from server');
       }
-    };
+
+      // Create user object from response
+      const user = {
+        userId: response.data.userId || '123',
+        email: email,
+        roles: response.data.roles || ['User']
+      };
+
+      // Store in localStorage
+      window.localStorage.setItem('incentive_token', token);
+      window.localStorage.setItem('incentive_user', JSON.stringify(user));
+      window.localStorage.setItem('incentive_lastLogin', new Date().toISOString());
+
+      // Return success response
+      return {
+        success: true,
+        data: {
+          token: token,
+          user: user
+        }
+      };
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   },
   register: async (userData: any) => {
     const response = await api.post('/api/auth/register', userData);
