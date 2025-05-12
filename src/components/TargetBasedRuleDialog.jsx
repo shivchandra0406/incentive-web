@@ -12,10 +12,10 @@ const TargetBasedRuleDialog = ({ open, onClose }) => {
   const [incentiveType, setIncentiveType] = useState('Amount');
   const [rewardAmount, setRewardAmount] = useState('');
   const [rewardPercentage, setRewardPercentage] = useState('');
-  const [itemRewardType, setItemRewardType] = useState('Reward');
   const [itemNestedChoice, setItemNestedChoice] = useState('Amount');
   const [itemNestedAmount, setItemNestedAmount] = useState('');
   const [itemNestedPercentage, setItemNestedPercentage] = useState('');
+  const [itemTargetAmount, setItemTargetAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e) => {
@@ -35,10 +35,10 @@ const TargetBasedRuleDialog = ({ open, onClose }) => {
         incentiveType,
         rewardAmount,
         rewardPercentage,
-        itemRewardType,
         itemNestedChoice,
         itemNestedAmount,
-        itemNestedPercentage
+        itemNestedPercentage,
+        itemTargetAmount
       });
 
       setLoading(false);
@@ -214,83 +214,72 @@ const TargetBasedRuleDialog = ({ open, onClose }) => {
 
               {targetDealType === 'Item' && (
                 <>
+                  {/* Target Amount field for Item - number of deals needed */}
                   <div className="form-group">
-                    <label>Item Reward Type</label>
+                    <label>Target Deal in Numbers (Positive value)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={itemTargetAmount}
+                      onChange={(e) => setItemTargetAmount(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Incentive Type</label>
                     <div className="radio-group">
                       <label>
                         <input
                           type="radio"
-                          name="itemRewardType"
-                          value="Reward"
-                          checked={itemRewardType === 'Reward'}
-                          onChange={() => setItemRewardType('Reward')}
+                          name="itemNestedChoice"
+                          value="Amount"
+                          checked={itemNestedChoice === 'Amount'}
+                          onChange={() => setItemNestedChoice('Amount')}
                         />
-                        Reward
+                        Amount
                       </label>
                       <label>
                         <input
                           type="radio"
-                          name="itemRewardType"
-                          value="Amount"
-                          checked={itemRewardType === 'Amount'}
-                          onChange={() => setItemRewardType('Amount')}
+                          name="itemNestedChoice"
+                          value="Percentage"
+                          checked={itemNestedChoice === 'Percentage'}
+                          onChange={() => setItemNestedChoice('Percentage')}
                         />
-                        Amount
+                        Percentage
                       </label>
                     </div>
                   </div>
 
-                  {itemRewardType === 'Reward' && (
-                    <div className="nested-form-group">
-                      <div className="form-group">
-                        <label>Reward Type</label>
-                        <div className="radio-group">
-                          <label>
-                            <input
-                              type="radio"
-                              name="itemNestedChoice"
-                              value="Amount"
-                              checked={itemNestedChoice === 'Amount'}
-                              onChange={() => setItemNestedChoice('Amount')}
-                            />
-                            Amount
-                          </label>
-                          <label>
-                            <input
-                              type="radio"
-                              name="itemNestedChoice"
-                              value="Percentage"
-                              checked={itemNestedChoice === 'Percentage'}
-                              onChange={() => setItemNestedChoice('Percentage')}
-                            />
-                            Percentage
-                          </label>
-                        </div>
+                  {itemNestedChoice === 'Amount' && (
+                    <div className="form-group">
+                      <label>Reward Amount</label>
+                      <div className="input-with-prefix">
+                        <span className="input-prefix">₹</span>
+                        <input
+                          type="number"
+                          value={itemNestedAmount}
+                          onChange={(e) => setItemNestedAmount(e.target.value)}
+                          required
+                        />
                       </div>
+                    </div>
+                  )}
 
-                      {itemNestedChoice === 'Amount' && (
-                        <div className="form-group">
-                          <label>Amount</label>
-                          <input
-                            type="number"
-                            value={itemNestedAmount}
-                            onChange={(e) => setItemNestedAmount(e.target.value)}
-                            required
-                          />
-                        </div>
-                      )}
-
-                      {itemNestedChoice === 'Percentage' && (
-                        <div className="form-group">
-                          <label>Percentage</label>
-                          <input
-                            type="number"
-                            value={itemNestedPercentage}
-                            onChange={(e) => setItemNestedPercentage(e.target.value)}
-                            required
-                          />
-                        </div>
-                      )}
+                  {itemNestedChoice === 'Percentage' && (
+                    <div className="form-group">
+                      <label>Reward Percentage of Sale Amount</label>
+                      <div className="input-with-suffix">
+                        <input
+                          type="number"
+                          value={itemNestedPercentage}
+                          onChange={(e) => setItemNestedPercentage(e.target.value)}
+                          required
+                        />
+                        <span className="input-suffix">%</span>
+                      </div>
                     </div>
                   )}
                 </>
@@ -298,7 +287,6 @@ const TargetBasedRuleDialog = ({ open, onClose }) => {
             </div>
           </div>
 
-          </div>
           <div className="dialog-footer">
             <button type="submit" className="submit-button" disabled={loading}>
               {loading ? 'Submitting...' : 'Submit'}
